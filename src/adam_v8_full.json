@@ -1,0 +1,100 @@
+{
+ "id": "adam-v8-full",
+ "pii": [
+  [
+   801.5,
+   811.0,
+   "names removed"
+  ],
+  [
+   825.1,
+   834.5,
+   "phone and address removed"
+  ],
+  [
+   960.8,
+   968.6,
+   "email removed"
+  ],
+  [
+   1310.2,
+   1426.0,
+   "welcome call removed"
+  ],
+  [
+   609.0,
+   619.4,
+   ""
+  ]
+ ],
+ "clips": [
+  {
+   "label": "Intro: Cold Knock",
+   "start": 4.93,
+   "end": 39.38,
+   "note": ""
+  },
+  {
+   "label": "Price Reveal",
+   "start": 301.98,
+   "end": 477.2,
+   "note": ""
+  },
+  {
+   "label": "Objection: \"Don't Want To Pay Twice As Much For A Service That Hasn't Been A Problem\"",
+   "start": 533.81,
+   "end": 620.54,
+   "note": ""
+  },
+  {
+   "label": "Objection: \"Let Me Think About It...\"",
+   "start": 622.05,
+   "end": 685.38,
+   "note": ""
+  },
+  {
+   "label": "Educating (Creating The Problem → Meeting The Need)",
+   "start": 715.18,
+   "end": 791.59,
+   "note": ""
+  },
+  {
+   "label": "Getting Credit Card (Asking For Payment)",
+   "start": 1124.82,
+   "end": 1140.36,
+   "note": ""
+  },
+  {
+   "label": "Scheduling & Confirming Appointment",
+   "start": 1196.4,
+   "end": 1225.28,
+   "note": "[Transcript jumps ahead]"
+  }
+ ],
+ "highlights": [
+  [
+   "Objection: Price",
+   323.49
+  ],
+  [
+   "Objection: \"Not Ready To Sign Up Right Now\"",
+   378.02
+  ],
+  [
+   "RAC (Resolve, Ace, Close) → Price Drop",
+   411.13
+  ],
+  [
+   "RAC (Resolve, Ace, Close) → Bonus Value-Add For Free",
+   554.99
+  ],
+  [
+   "Anchoring Price To Value, Not To Competition",
+   723.02
+  ],
+  [
+   "\"Okay, I'll Give You A Shot.\"",
+   785.24
+  ]
+ ]
+}
