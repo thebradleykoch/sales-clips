@@ -1,0 +1,293 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><style>[hidden]{display:none!important}</style></head><body><title>Adam Sale – short</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..700&display=swap">
+<style>
+/* Layout: one-screen transcript player. Search row on top, transcript in a centered 600px column, scrubber + controls pinned to the bottom. Light only. */
+:root{
+  color-scheme:light;
+  --bg:#fcfcfd;
+  --text:#171b26;
+  --text-2:rgba(84,94,116,.9);
+  --fill:rgba(120,132,160,.09);
+  --fill-hover:rgba(120,132,160,.16);
+  --line:rgba(16,24,48,.06);
+  --track:#e1e5ec;
+  --played:rgba(14,22,44,.6);
+  --preview:rgba(40,72,170,.18);
+  --tip:#262e44;
+  --accent:#1f3275;
+  --accent-tint:#e3e8f6;
+  --adam:#3e8b6a;
+  --bradley:#3a7ed1;
+  --font:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+html,body{height:100%}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:24px;margin:0;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.app{height:100%;display:flex;flex-direction:column;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+
+/* top row */
+.top{flex:none;display:flex;align-items:center;gap:8px;padding:8px 16px}
+.search{flex:1;min-width:0;height:32px;display:flex;align-items:center;gap:8px;padding:0 8px;border-radius:8px;background:var(--fill);border:1px solid var(--line);color:var(--text-2)}
+.search:focus-within{border-color:rgba(31,50,117,.35)}
+.search svg{flex:none;width:16px;height:16px}
+.search input{flex:1;min-width:0;border:0;background:transparent;outline:0;font:475 12px/16px var(--font);letter-spacing:.0001em;color:var(--text)}
+.search input::placeholder{color:var(--text-2)}
+.search .count{font:475 12px/16px var(--font);color:var(--text-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.menu-wrap{position:relative;flex:none}
+.hlbtn{height:32px;display:flex;align-items:center;gap:8px;padding:0 8px;border-radius:8px;font:475 12px/16px var(--font);color:var(--text);transition:background .1s}
+.hlbtn:hover,.hlbtn[aria-expanded="true"]{background:var(--fill-hover)}
+.hlbtn svg{width:16px;height:16px}
+.menu{position:absolute;right:0;top:40px;z-index:20;width:min(360px,calc(100vw - 32px));background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(16,24,48,.12),0 1px 2px rgba(16,24,48,.06);padding:4px;display:flex;flex-direction:column}
+.menu button{display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;align-items:baseline;text-align:left;padding:8px;border-radius:4px;font:475 12px/16px var(--font)}
+.menu button:hover,.menu button:focus-visible{background:var(--fill-hover);outline:0}
+.menu .t{color:var(--text-2);font-variant-numeric:tabular-nums}
+
+/* transcript */
+.scroll{flex:1;min-height:0;overflow-y:auto;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 40px),transparent)}
+.col{max-width:600px;margin:0 auto;padding:0 32px 160px}
+h1{margin:48px 0 24px;font-weight:425;font-size:24px;line-height:32px;letter-spacing:-.01em;text-wrap:balance}
+.clip{padding-top:16px}
+.clip+.clip{padding-top:40px}
+.skip{display:flex;align-items:center;gap:8px;font:475 12px/16px var(--font);color:var(--text-2);margin-bottom:8px}
+.skip::after{content:"";flex:1;height:1px;background:var(--line)}
+.ctitle{margin:0 0 24px;font-weight:525;font-size:18px;line-height:24px;letter-spacing:-.011em;cursor:pointer;border-radius:4px}
+.ctitle.now{color:var(--accent)}
+.who{font-weight:575;font-size:16px;line-height:24px;letter-spacing:-.011em}
+.who.adam{color:var(--adam)}
+.who.bradley{color:var(--bradley)}
+.tag{display:flex;align-items:center;gap:8px;font:575 12px/16px var(--font);color:var(--accent);margin-bottom:8px}
+.tag::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--accent);transform:rotate(45deg)}
+p.say{margin:0;padding:0 0 24px;font-weight:425;font-size:16px;line-height:32px;letter-spacing:-.011em}
+.w{position:relative;isolation:isolate;padding:6px 0;cursor:pointer;transition:color .08s}
+.w::before{content:"";position:absolute;inset:0 -4px;border-radius:4px;z-index:-1;background:transparent;transition:background .08s}
+.w:hover::before{background:var(--fill-hover)}
+.w.hit::before{background:rgba(255,196,0,.28)}
+.w.hit.cur::before{background:rgba(255,170,0,.55)}
+.w.now{color:#fff}
+.w.now.adam::before{background:var(--adam)}
+.w.now.bradley::before{background:var(--bradley)}
+.w.rm{color:var(--text-2);cursor:default}
+.w.rm::before{display:none}
+
+/* bottom bar */
+.bar{flex:none;padding:16px 16px 8px}
+.scrub{position:relative;height:16px;margin:0 4px;cursor:pointer;touch-action:none}
+.track{position:absolute;left:0;right:0;top:5px;height:6px;border-radius:2px;background:var(--track);overflow:hidden;transition:transform .1s}
+.scrub:hover .track{transform:scaleY(1.34)}
+.prev,.fill{position:absolute;left:0;top:0;bottom:0;width:0}
+.prev{background:var(--preview)}
+.fill{background:var(--played)}
+.gap{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--bg)}
+.mark{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--accent)}
+.tip{position:absolute;bottom:20px;transform:translateX(-50%);background:var(--tip);color:#fff;border-radius:4px;padding:4px 8px;font:475 11px/16px var(--font);white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums;max-width:280px;overflow:hidden;text-overflow:ellipsis}
+.tip b{font-weight:575}
+.ctl{display:flex;align-items:center;gap:4px;margin-top:8px;height:32px}
+.ib{width:32px;height:32px;padding:8px;border-radius:8px;display:grid;place-items:center;transition:background .1s}
+.ib svg{width:16px;height:16px;fill:currentColor}
+.ib:hover{background:var(--fill-hover)}
+.ib.on{background:var(--accent-tint);color:var(--accent)}
+.time{padding:0 8px;font:475 12px/16px var(--font);font-variant-numeric:tabular-nums;white-space:nowrap}
+.where{flex:1;min-width:0;font:475 12px/16px var(--font);color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
+.speed{position:relative;height:32px;min-width:32px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
+.speed:hover{background:var(--fill-hover)}
+.speed select{appearance:none;-webkit-appearance:none;border:0;background:transparent;font:475 12px/16px var(--font);color:var(--text);text-align:center;cursor:pointer;padding:0 4px;outline:0}
+.auto{display:flex;align-items:center;height:32px;border-radius:8px;padding:0 0 0 4px;font:475 12px/16px var(--font)}
+.auto .sw{width:20px;height:12px;margin:4px;border-radius:9999px;background:#c9cfda;position:relative;transition:background .12s}
+.auto .sw::after{content:"";position:absolute;top:2px;left:2px;width:8px;height:8px;border-radius:50%;background:#fff;transition:transform .12s}
+.auto[aria-checked="true"] .sw{background:var(--accent)}
+.auto[aria-checked="true"] .sw::after{transform:translateX(8px)}
+.auto span:last-child{padding:0 8px}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:560px){
+  .col{padding:0 16px 120px}
+  h1{margin-top:24px;font-size:20px;line-height:28px}
+  .where{display:none}
+  .ctl{justify-content:space-between}
+  .hlbtn .lbl{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <div class="top">
+    <label class="search">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="4"/><path d="M10 10l3.5 3.5"/></svg>
+      <input id="q" type="search" placeholder="Search" aria-label="Search transcript" autocomplete="off">
+      <span class="count" id="count"></span>
+    </label>
+    <div class="menu-wrap">
+      <button class="hlbtn" id="hlbtn" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4.5 2.5h7v11l-3.5-2.5-3.5 2.5z"/></svg>
+        <span class="lbl">Highlights</span>
+      </button>
+      <div class="menu" id="menu" hidden></div>
+    </div>
+  </div>
+  <div class="scroll" id="scroll"><div class="col" id="col"><h1>Door to Door: “Twice as Much as I Pay Now” to Paid on the Spot</h1></div></div>
+  <div class="bar">
+    <div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0">
+      <div class="track" id="track"><div class="prev" id="prev"></div><div class="fill" id="fill"></div></div>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <div class="ctl">
+      <button class="ib" id="play" aria-label="Play"><svg viewBox="0 0 16 16" id="pico"><path d="M4.5 2.8v10.4L13 8z"/></svg></button>
+      <button class="ib" id="mute" aria-label="Mute"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.1" id="mico"><path d="M2 6h2.6L7.5 3.5v9L4.6 10H2z" fill="none"/><path d="M10 6c.6.6.9 1.3.9 2s-.3 1.4-.9 2M11.8 4.2C12.9 5.2 13.5 6.6 13.5 8s-.6 2.8-1.7 3.8"/></svg></button>
+      <span class="time"><span id="cur">0:00</span> / <span id="dur">0:00</span></span>
+      <span class="where" id="where"></span>
+      <label class="speed"><select id="speed" aria-label="Playback speed"><option value="1">1x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="2">2x</option></select></label>
+      <button class="auto" id="auto" role="switch" aria-checked="true"><span class="sw"></span><span>Auto-scroll</span></button>
+    </div>
+  </div>
+</div>
+<audio id="au" preload="auto" src="adam-short.mp3"></audio>
+
+<script>
+const DATA = {"duration": 206.84, "me": "Bradley", "clips": [{"label": "Intro (Cold Knock)", "skip": null, "t0": 0.0, "t1": 21.21, "turns": [{"sp": "Adam", "words": [["Hey.", 0.2, 0, 0]]}, {"sp": "Bradley", "words": [["Hey,", 0.38, 0, 0], ["how", 0.75, 0, 0], ["are", 0.96, 0, 0], ["ya?", 1.03, 0, 0]]}, {"sp": "Adam", "words": [["Good.", 1.61, 0, 0]]}, {"sp": "Bradley", "words": [["Good,", 1.87, 0, 0], ["good.", 2.19, 0, 0], ["Got", 2.27, 0, 0], ["a", 2.46, 0, 0], ["good", 2.51, 0, 0], ["little", 2.67, 0, 0], ["guard", 2.83, 0, 0], ["dog", 3.03, 0, 0], ["there", 3.24, 0, 0], ["it", 3.51, 0, 0], ["looks", 3.53, 0, 0], ["like.", 3.62, 0, 0]]}, {"sp": "Adam", "words": [["Yeah.", 4.02, 0, 0]]}, {"sp": "Bradley", "words": [["My", 5.43, 0, 0], ["name's", 5.52, 0, 0], ["Bradley,", 5.66, 0, 0], ["just", 6.16, 0, 0], ["the", 6.25, 0, 0], ["manager", 6.32, 0, 0], ["with", 6.59, 0, 0], ["Greenix.", 6.89, 0, 0], ["Take", 7.52, 0, 0], ["care", 7.65, 0, 0], ["of", 7.86, 0, 0], ["[names removed]", 8.01, 1, 1], ["Just", 8.04, 0, 0], ["a", 8.24, 0, 0], ["ton", 8.3, 0, 0], ["of", 8.36, 0, 0], ["your", 8.47, 0, 0], ["neighbors", 8.57, 0, 0], ["out", 8.9, 0, 0], ["here", 9.03, 0, 0], ["on", 9.19, 0, 0], ["[names removed]", 9.18, 1, 1]]}, {"sp": "Adam", "words": [["Yep.", 9.27, 0, 0]]}, {"sp": "Bradley", "words": [["Mainly", 9.93, 0, 0], ["for", 10.3, 0, 0], ["the", 10.42, 0, 0], ["pest", 10.5, 0, 0], ["control", 10.76, 0, 0], ["like", 11.09, 0, 0], ["the", 11.22, 0, 0], ["spiders,", 11.33, 0, 0], ["ants,", 11.97, 0, 0], ["wasps,", 12.32, 0, 0], ["everything", 12.88, 0, 0], ["like", 13.14, 0, 0], ["that.", 13.26, 0, 0], ["Most", 14.73, 0, 0], ["neighbors", 15.01, 0, 0], ["I", 15.29, 0, 0], ["had,", 15.37, 0, 0], ["they", 15.7, 0, 0], ["had", 15.81, 0, 0], ["a", 16.13, 0, 0], ["company", 16.14, 0, 0], ["already", 16.48, 0, 0], ["taking", 16.69, 0, 0], ["care", 16.94, 0, 0], ["of", 17.14, 0, 0], ["them.", 17.23, 0, 0], ["Have", 17.56, 0, 0], ["you", 17.69, 0, 0], ["guys", 17.76, 0, 0], ["had", 17.9, 0, 0], ["a", 18.02, 0, 0], ["service", 18.07, 0, 0], ["in", 18.36, 0, 0], ["the", 18.47, 0, 0], ["past", 18.49, 0, 0], ["or", 18.85, 0, 0], ["not", 18.95, 0, 0], ["yet?", 19.1, 0, 0]]}, {"sp": "Adam", "words": [["Yeah.", 19.57, 0, 0], ["I've", 19.82, 0, 0], ["got", 20.0, 0, 0], ["Champion", 20.24, 0, 0], ["Pest.", 20.94, 0, 0]]}]}, {"label": "Price Reveal", "skip": 288, "t0": 22.21, "t1": 33.71, "turns": [{"sp": "Bradley", "words": [["to", 22.41, 0, 0], ["get", 22.44, 0, 0], ["the", 22.58, 0, 0], ["adult", 22.63, 0, 0], ["bugs,", 22.85, 0, 0], ["harder", 23.13, 0, 0], ["to", 23.24, 0, 0], ["get", 23.3, 0, 0], ["the", 23.41, 0, 0], ["eggs,", 23.5, 0, 0], ["pupae,", 24.05, 0, 0], ["larvae.", 24.58, 0, 0], ["That", 25.49, 0, 0], ["makes", 25.57, 0, 0], ["sense,", 25.72, 0, 0], ["right?", 25.94, 0, 0]]}, {"sp": "Adam", "words": [["Okay.", 26.3, 0, 0]]}, {"sp": "Bradley", "words": [["Cool.", 26.95, 0, 0]]}, {"sp": "Adam", "words": [["Yeah,", 27.67, 0, 0], ["that's", 27.82, 0, 0], ["about", 27.9, 0, 0], ["twice", 27.91, 0, 0], ["as", 27.92, 0, 0], ["much", 28.03, 0, 0], ["as", 28.22, 0, 0], ["I", 28.34, 0, 0], ["pay", 28.41, 0, 0], ["right", 28.62, 0, 0], ["now,", 28.8, 0, 0], ["so", 29.13, 0, 0], ["I'm", 29.24, 0, 0], ["going", 29.34, 0, 0], ["to", 29.43, 0, 0], ["have", 29.53, 0, 0], ["to", 29.63, 0, 0], ["think", 29.73, 0, 0], ["about", 29.92, 0, 0], ["it.", 30.01, 0, 0]]}, {"sp": "Bradley", "words": [["Definitely.", 30.35, 0, 0], ["And", 31.16, 0, 0], ["last", 31.67, 0, 0], ["thing", 31.94, 0, 0], ["I'll", 32.09, 0, 0], ["show", 32.16, 0, 0], ["ya,", 32.38, 0, 0], ["just", 32.9, 0, 0], ["out", 33.16, 0, 0], ["here,", 33.29, 0, 0]]}]}, {"label": "\"Not Ready To Sign Up Right Now\" → Price Drop", "skip": 41, "t0": 34.71, "t1": 107.05, "turns": [{"sp": "Bradley", "words": [["All", 34.91, 0, 0], ["right.", 34.97, 0, 0], ["Does", 35.44, 0, 0], ["that", 35.58, 0, 0], ["sound", 35.61, 0, 0], ["fair?", 35.76, 0, 0]]}, {"sp": "Adam", "words": [["Yeah.", 36.17, 0, 0], ["Do", 36.42, 0, 0], ["you", 36.49, 0, 0], ["have", 36.59, 0, 0], ["a", 36.69, 0, 0], ["card", 36.74, 0, 0], ["or", 37.01, 0, 0], ["something?", 37.06, 0, 0]]}, {"sp": "Bradley", "words": [["So", 37.95, 0, 0], ["I", 38.16, 0, 0], ["just", 38.26, 0, 0], ["do", 38.39, 0, 0], ["the", 38.49, 0, 0], ["sign-ups", 38.6, 0, 0], ["for", 39.05, 0, 0], ["everyone.", 39.2, 0, 0], ["Just", 40.01, 0, 0], ["getting", 40.19, 0, 0], ["it", 40.31, 0, 0], ["taken", 40.47, 0, 0], ["care", 40.68, 0, 0], ["of", 40.85, 0, 0], ["all", 40.98, 0, 0], ["with", 41.13, 0, 0], ["everyone", 41.28, 0, 0], ["else.", 41.6, 0, 0]]}, {"sp": "Adam", "words": [["I'm", 42.53, 0, 0], ["not", 43.08, 0, 0], ["ready", 43.2, 0, 0], ["to", 43.33, 0, 0], ["sign", 43.4, 0, 0], ["up", 43.61, 0, 0], ["right", 43.73, 0, 0], ["now.", 44.47, 0, 0]]}, {"sp": "Bradley", "words": [["Yeah,", 44.5, 0, 0], ["no", 44.65, 0, 0], ["worries.", 44.68, 0, 0], ["What", 45.43, 0, 0], ["would", 45.62, 0, 0], ["be", 45.74, 0, 0], ["the", 45.81, 0, 0], ["biggest", 45.89, 0, 0], ["thing", 46.15, 0, 0], ["for", 46.36, 0, 0], ["you", 46.5, 0, 0], ["guys", 46.61, 0, 0], ["that", 46.69, 0, 0], ["you'd", 46.84, 0, 0], ["want", 47.0, 0, 0], ["taken", 47.22, 0, 0], ["care", 47.44, 0, 0], ["of?", 47.67, 0, 0]]}, {"sp": "Adam", "words": [["Cost.", 48.24, 0, 0]]}, {"sp": "Bradley", "words": [["Cost?", 49.64, 0, 0], ["Sure.", 50.05, 0, 0]]}, {"sp": "Adam", "words": [["Yeah.", 50.47, 0, 0], ["I'm", 51.17, 0, 0], ["paying", 51.39, 0, 0], ["like", 51.62, 0, 0], ["340", 51.82, 0, 0], ["annually", 53.04, 0, 0], ["right", 53.5, 0, 0], ["now.", 53.71, 0, 0]]}, {"sp": "Bradley", "words": [["Sure,", 54.44, 0, 0], ["sure.", 54.64, 0, 0], ["Okay.", 55.43, 0, 0]]}, {"sp": "Adam", "words": [["You're", 55.63, 0, 0], ["like", 55.72, 0, 0], ["6...", 55.97, 0, 0], ["I'd", 57.7, 0, 0], ["be", 58.13, 0, 0], ["in", 58.32, 0, 0], ["over", 58.47, 0, 0], ["$600", 58.67, 0, 0], ["if", 59.19, 0, 0], ["I", 59.29, 0, 0], ["was", 59.35, 0, 0], ["with", 59.55, 0, 0], ["you.", 59.74, 0, 0]]}, {"sp": "Bradley", "words": [["Yeah.", 60.86, 0, 0]]}, {"sp": "Adam", "words": [["About", 61.17, 0, 0], ["right?", 61.36, 0, 0], ["127,", 62.86, 0, 0], ["250—", 63.02, 0, 0]]}, {"sp": "Bradley", "words": [["127.", 63.4, 0, 0], ["Yeah.", 63.89, 0, 0], ["So", 64.11, 0, 0], ["it'd", 64.25, 0, 0], ["be", 64.36, 0, 0], ["about", 64.45, 0, 0], ["525,", 64.7, 0, 0], ["around", 66.83, 0, 0], ["there.", 67.05, 0, 0]]}, {"sp": "Adam", "words": [["Yeah.", 67.27, 0, 0]]}, {"sp": "Bradley", "words": [["Okay.", 67.54, 0, 0], ["I'll", 68.1, 0, 0], ["tell", 68.22, 0, 0], ["you", 68.35, 0, 0], ["what—", 68.44, 0, 0]]}, {"sp": "Adam", "words": [["I", 68.67, 0, 0], ["haven't", 68.69, 0, 0], ["had", 68.7, 0, 0], ["any", 68.74, 0, 0], ["issues,", 69.02, 0, 0], ["so", 69.45, 0, 0], ["that's", 69.84, 0, 0], ["my", 70.61, 0, 0], ["biggest", 70.74, 0, 0], ["issue.", 71.08, 0, 0]]}, {"sp": "Bradley", "words": [["Nothing", 71.37, 0, 0], ["on", 71.95, 0, 0], ["the", 72.06, 0, 0], ["inside,", 72.13, 0, 0], ["nothing", 72.73, 0, 0], ["crazy", 72.95, 0, 0], ["it", 73.31, 0, 0], ["hasn't", 73.37, 0, 0], ["really", 73.63, 0, 0], ["heated", 73.81, 0, 0], ["up", 74.08, 0, 0], ["too", 74.26, 0, 0], ["much", 74.41, 0, 0], ["yet.", 74.65, 0, 0], ["I'll", 75.64, 0, 0], ["tell", 75.77, 0, 0], ["you", 75.89, 0, 0], ["what,", 76.01, 0, 0], ["I", 76.43, 0, 0], ["don't", 77.31, 0, 0], ["normally", 77.64, 0, 0], ["do", 78.01, 0, 0], ["this", 78.16, 0, 0], ["for", 78.74, 0, 0], ["the", 78.86, 0, 0], ["rest", 78.95, 0, 0], ["of", 79.17, 0, 0], ["the", 79.19, 0, 0], ["neighbors,", 79.25, 0, 0], ["just", 79.66, 0, 0], ["because", 79.81, 0, 0], ["we", 80.59, 0, 0], ["lose", 80.72, 0, 0], ["out", 80.8, 0, 0], ["on", 80.96, 0, 0], ["money", 81.17, 0, 0], ["on", 81.37, 0, 0], ["it", 81.39, 0, 0], ["for", 81.52, 0, 0], ["the", 81.66, 0, 0], ["first", 81.93, 0, 0], ["year.", 82.21, 0, 0], ["But", 82.38, 0, 0], ["just", 82.56, 0, 0], ["to", 83.13, 0, 0], ["hopefully", 83.16, 0, 0], ["impress", 83.47, 0, 0], ["you", 83.95, 0, 0], ["and", 84.06, 0, 0], ["earn", 84.19, 0, 0], ["your", 84.35, 0, 0], ["business,", 84.45, 0, 0], ["the", 86.04, 0, 0], ["initial", 86.22, 0, 0], ["service,", 86.62, 0, 0], ["if", 88.09, 0, 0], ["you", 88.26, 0, 0], ["can", 88.37, 0, 0], ["get", 88.51, 0, 0], ["on", 88.65, 0, 0], ["the", 88.74, 0, 0], ["same", 88.81, 0, 0], ["route", 89.07, 0, 0], ["with", 89.24, 0, 0], ["everyone", 89.36, 0, 0], ["else,", 89.71, 0, 0], ["the", 90.5, 0, 0], ["lowest", 90.62, 0, 0], ["I", 90.94, 0, 0], ["can", 90.98, 0, 0], ["drop", 91.12, 0, 0], ["it", 91.39, 0, 0], ["would", 91.44, 0, 0], ["be", 91.73, 0, 0], ["69.", 91.95, 0, 0], ["So", 93.3, 0, 0], ["that", 93.57, 0, 0], ["way,", 93.81, 0, 0], ["because", 94.13, 0, 0], ["you've", 94.72, 0, 0], ["already", 94.81, 0, 0], ["had", 95.04, 0, 0], ["a", 95.27, 0, 0], ["service,", 95.33, 0, 0], ["it's", 95.67, 0, 0], ["less", 95.8, 0, 0], ["work", 96.08, 0, 0], ["for", 96.29, 0, 0], ["me", 96.45, 0, 0], ["to", 96.69, 0, 0], ["get", 96.78, 0, 0], ["the", 96.96, 0, 0], ["flush", 97.04, 0, 0], ["out", 97.43, 0, 0], ["and", 97.74, 0, 0], ["take", 97.78, 0, 0], ["care", 97.96, 0, 0], ["of", 98.12, 0, 0], ["everything", 98.22, 0, 0], ["that", 98.62, 0, 0], ["way.", 98.81, 0, 0], ["That", 99.58, 0, 0], ["way,", 99.81, 0, 0], ["it'd", 99.99, 0, 0], ["just", 100.08, 0, 0], ["be", 100.24, 0, 0], ["about", 100.36, 0, 0], ["half", 100.61, 0, 0], ["as", 100.94, 0, 0], ["much", 101.06, 0, 0], ["as", 101.3, 0, 0], ["it", 101.37, 0, 0], ["normally", 101.46, 0, 0], ["is.", 101.81, 0, 0], ["That's", 102.22, 0, 0], ["our", 102.46, 0, 0], ["cost", 102.57, 0, 0], ["for", 103.21, 0, 0], ["the", 103.35, 0, 0], ["first", 103.44, 0, 0], ["one.", 103.71, 0, 0]]}, {"sp": "Adam", "words": [["Okay.", 104.34, 0, 0]]}, {"sp": "Bradley", "words": [["That", 104.43, 0, 0], ["way,", 104.68, 0, 0], ["it", 105.0, 0, 0], ["just", 105.03, 0, 0], ["makes", 105.22, 0, 0], ["sense", 105.38, 0, 0], ["for", 105.63, 0, 0], ["both", 105.74, 0, 0], ["of", 105.95, 0, 0], ["us.", 106.07, 0, 0]]}]}, {"label": "Educating (Creating The Problem → Meeting The Need)", "skip": 274, "t0": 108.05, "t1": 185.56, "turns": [{"sp": "Bradley", "words": [["Whereas", 108.25, 0, 0], ["paper", 108.54, 0, 0], ["wasps", 108.8, 0, 0], ["are", 109.13, 0, 0], ["more", 109.19, 0, 0], ["coming", 109.77, 0, 0], ["in", 110.05, 0, 0], ["colonies,", 110.14, 0, 0], ["but", 110.68, 0, 0], ["either", 110.91, 0, 0], ["way,", 111.16, 0, 0], ["we", 111.38, 0, 0], ["treat", 111.51, 0, 0], ["both", 111.78, 0, 0], ["pheromones", 112.04, 0, 0], ["for", 112.46, 0, 0], ["both", 112.59, 0, 0], ["of", 112.85, 0, 0], ["those", 112.94, 0, 0], ["bugs.", 113.18, 0, 0], ["That", 114.15, 0, 0], ["way", 114.4, 0, 0], ["you", 114.58, 0, 0], ["don't", 114.63, 0, 0], ["have", 114.77, 0, 0], ["issues", 114.94, 0, 0], ["in", 115.25, 0, 0], ["the", 115.39, 0, 0], ["future.", 115.39, 0, 0]]}, {"sp": "Adam", "words": [["Sure.", 116.09, 0, 0], ["I'm", 120.73, 0, 0], ["essentially", 120.88, 0, 0], ["paying", 121.29, 0, 0], ["for", 121.52, 0, 0], ["5", 121.67, 0, 0], ["treatments", 121.92, 0, 0], ["though,", 122.38, 0, 0], ["over", 122.88, 0, 0], ["the", 123.16, 0, 0], ["course", 123.23, 0, 0], ["of", 123.49, 0, 0], ["the", 123.6, 0, 0], ["year.", 123.67, 0, 0], ["Is", 123.9, 0, 0], ["there", 123.96, 0, 0], ["anything", 124.07, 0, 0], ["more", 124.37, 0, 0], ["you", 124.56, 0, 0], ["can", 124.66, 0, 0], ["do", 124.67, 0, 0], ["on", 124.89, 0, 0], ["that", 124.99, 0, 0], ["first", 125.15, 0, 0], ["30", 126.41, 0, 0], ["day", 126.66, 0, 0], ["treatment?", 126.82, 0, 0]]}, {"sp": "Bradley", "words": [["So", 127.95, 0, 0], ["the", 128.15, 0, 0], ["first", 128.23, 0, 0], ["one's", 128.52, 0, 0], ["literally", 128.93, 0, 0], ["69,", 129.23, 0, 0], ["just", 131.07, 0, 0], ["like", 131.25, 0, 0], ["the", 131.55, 0, 0], ["floor.", 131.7, 0, 0], ["If", 132.57, 0, 0], ["I", 132.66, 0, 0], ["could", 132.69, 0, 0], ["drop", 132.83, 0, 0], ["it", 133.05, 0, 0], ["any", 133.12, 0, 0], ["lower", 133.29, 0, 0], ["for", 133.53, 0, 0], ["you,", 133.68, 0, 0], ["I", 133.78, 0, 0], ["would.", 133.83, 0, 0], ["But", 134.23, 0, 0], ["like", 134.91, 0, 0], ["I", 135.16, 0, 0], ["mentioned,", 135.24, 0, 0], ["we", 135.52, 0, 0], ["lose", 135.64, 0, 0], ["out", 135.85, 0, 0], ["on", 136.09, 0, 0], ["money", 136.24, 0, 0], ["on", 136.5, 0, 0], ["it", 136.61, 0, 0], ["for", 136.72, 0, 0], ["the", 136.82, 0, 0], ["first", 136.89, 0, 0], ["year,", 137.18, 0, 0], ["but", 137.39, 0, 0], ["it's", 137.7, 0, 0], ["just,", 137.91, 0, 0], ["obviously", 138.97, 0, 0], ["I'm", 139.49, 0, 0], ["confident", 139.69, 0, 0], ["that", 140.15, 0, 0], ["we'll", 140.29, 0, 0], ["gain", 140.59, 0, 0], ["your", 140.82, 0, 0], ["business", 140.95, 0, 0], ["and", 141.31, 0, 0], ["gain", 141.39, 0, 0], ["your", 141.55, 0, 0], ["trust.", 141.64, 0, 0], ["Especially", 141.92, 0, 0], ["with", 142.27, 0, 0], ["nicer", 142.4, 0, 0], ["homes", 142.7, 0, 0], ["like", 142.92, 0, 0], ["these,", 143.12, 0, 0], ["last", 143.96, 0, 0], ["thing", 144.23, 0, 0], ["you", 144.37, 0, 0], ["want", 144.52, 0, 0], ["is", 144.8, 0, 0], ["a", 144.98, 0, 0], ["service", 145.45, 0, 0], ["that's", 145.83, 0, 0], ["doing", 146.08, 0, 0], ["half", 146.36, 0, 0], ["of", 146.65, 0, 0], ["the", 146.77, 0, 0], ["service", 146.85, 0, 0], ["for", 147.2, 0, 0], ["you.", 147.47, 0, 0], ["What", 147.73, 0, 0], ["you", 147.86, 0, 0], ["really", 148.11, 0, 0], ["want", 148.36, 0, 0], ["is", 148.58, 0, 0], ["the", 148.66, 0, 0], ["full", 148.78, 0, 0], ["top-to-bottom", 149.28, 0, 0], ["approach.", 149.89, 0, 0], ["And", 151.74, 0, 0], ["like", 151.89, 0, 0], ["I", 152.04, 0, 0], ["mentioned,", 152.11, 0, 0], ["I'm", 153.75, 0, 0], ["giving", 153.92, 0, 0], ["you", 154.11, 0, 0], ["the", 154.13, 0, 0], ["best", 154.21, 0, 0], ["deal", 154.45, 0, 0], ["in", 154.67, 0, 0], ["the", 154.72, 0, 0], ["neighborhood,", 154.74, 0, 0], ["as", 155.03, 0, 0], ["long", 155.15, 0, 0], ["as", 155.25, 0, 0], ["you", 155.28, 0, 0], ["don't", 155.34, 0, 0], ["have", 155.49, 0, 0], ["neighbors", 155.81, 0, 0], ["calling", 156.07, 0, 0], ["me", 156.27, 0, 0], ["mad", 156.37, 0, 0], ["saying,", 156.67, 0, 0], ["\"Hey,", 157.32, 0, 0], ["he's", 157.49, 0, 0], ["charging", 157.61, 0, 0], ["me", 157.84, 0, 0], ["127", 158.01, 0, 0], ["on", 158.03, 0, 0], ["the", 158.15, 0, 0], ["initial", 158.73, 0, 0], ["or", 159.07, 0, 0], ["whatever,\"", 159.12, 0, 0], ["like", 159.38, 0, 0], ["that.", 159.55, 0, 0]]}, {"sp": "Adam", "words": [["Yeah.", 159.93, 0, 0], ["So", 162.4, 0, 0], ["in", 162.64, 0, 0], ["future", 162.79, 0, 0], ["years,", 163.16, 0, 0], ["do", 163.5, 0, 0], ["you", 163.54, 0, 0], ["guys", 163.7, 0, 0], ["just", 164.0, 0, 0], ["do", 164.19, 0, 0], ["the", 164.33, 0, 0], ["quarterly?", 164.43, 0, 0], ["Like", 164.94, 0, 0], ["you", 165.15, 0, 0], ["don't", 165.23, 0, 0], ["do", 165.47, 0, 0], ["that", 165.58, 0, 0], ["initial?", 165.77, 0, 0], ["Or", 166.17, 0, 0], ["do", 166.24, 0, 0], ["you", 166.3, 0, 0], ["do", 166.43, 0, 0], ["the", 166.56, 0, 0], ["initial?", 166.68, 0, 0]]}, {"sp": "Bradley", "words": [["Yeah,", 166.94, 0, 0], ["we", 167.24, 0, 0], ["don't", 167.34, 0, 0], ["do", 167.48, 0, 0], ["the", 167.56, 0, 0], ["initial", 167.62, 0, 0], ["on", 168.19, 0, 0], ["future", 168.39, 0, 0], ["visits.", 168.71, 0, 0], ["It's", 169.15, 0, 0], ["just", 169.28, 0, 0], ["to", 169.52, 0, 0], ["break", 169.61, 0, 0], ["up", 169.71, 0, 0], ["the", 169.9, 0, 0], ["egg", 169.98, 0, 0], ["cycles", 170.17, 0, 0], ["of", 170.5, 0, 0], ["the", 170.56, 0, 0], ["bugs", 170.67, 0, 0], ["because", 171.51, 0, 0], ["no", 171.9, 0, 0], ["product", 172.39, 0, 0], ["can", 172.68, 0, 0], ["penetrate", 172.83, 0, 0], ["an", 173.25, 0, 0], ["egg", 173.38, 0, 0], ["sac,", 173.6, 0, 0], ["so", 174.05, 0, 0], ["that's", 174.19, 0, 0], ["why", 174.35, 0, 0], ["we", 174.41, 0, 0], ["come", 174.51, 0, 0], ["back", 174.68, 0, 0], ["30", 174.89, 0, 0], ["days", 175.14, 0, 0], ["later.", 175.32, 0, 0], ["Get", 175.99, 0, 0], ["the", 176.17, 0, 0], ["adults,", 176.29, 0, 0], ["then", 176.73, 0, 0], ["get", 176.93, 0, 0], ["the", 177.11, 0, 0], ["babies.", 177.22, 0, 0]]}, {"sp": "Adam", "words": [["Okay.", 178.31, 0, 0], ["I'll", 178.74, 0, 0], ["give", 178.88, 0, 0], ["you", 179.09, 0, 0], ["a", 179.11, 0, 0], ["shot.", 179.12, 0, 0]]}, {"sp": "Bradley", "words": [["Okay.", 179.97, 0, 0]]}, {"sp": "Adam", "words": [["You've", 180.0, 0, 0], ["done", 180.07, 0, 0], ["a", 180.21, 0, 0], ["nice", 180.22, 0, 0], ["job", 180.44, 0, 0], ["pitching", 180.63, 0, 0], ["it.", 180.91, 0, 0]]}, {"sp": "Bradley", "words": [["All", 181.24, 0, 0], ["right.", 181.44, 0, 0], ["I've", 181.61, 0, 0], ["done", 182.15, 0, 0], ["my", 182.33, 0, 0], ["best", 182.45, 0, 0], ["haha.", 182.74, 0, 0]]}, {"sp": "Adam", "words": [["I", 182.75, 0, 0], ["can", 182.95, 0, 0], ["appreciate", 183.16, 0, 0], ["a", 183.36, 0, 0], ["good", 183.56, 0, 0], ["salesman.", 183.77, 0, 0]]}, {"sp": "Bradley", "words": [["Haha.", 183.97, 0, 0], ["Cool,", 184.38, 0, 0], ["cool.", 184.61, 0, 0]]}]}, {"label": "Asking For Payment", "skip": 333, "t0": 186.56, "t1": 203.2, "turns": [{"sp": "Adam", "words": [["Okay,", 186.76, 0, 0], ["cool.", 187.8, 0, 0], ["Sounds", 188.67, 0, 0], ["good.", 188.89, 0, 0]]}, {"sp": "Bradley", "words": [["And", 189.15, 0, 0], ["then,", 189.18, 0, 0], ["did", 189.47, 0, 0], ["it", 189.53, 0, 0], ["go", 189.77, 0, 0], ["to", 189.89, 0, 0], ["the", 189.95, 0, 0], ["next", 189.97, 0, 0], ["step", 190.23, 0, 0], ["with", 190.41, 0, 0], ["the—", 190.56, 0, 0]]}, {"sp": "Adam", "words": [["Credit", 191.18, 0, 0], ["card.", 191.42, 0, 0]]}, {"sp": "Bradley", "words": [["credit", 191.77, 0, 0], ["card?", 191.95, 0, 0], ["Cool.", 192.18, 0, 0]]}, {"sp": "Adam", "words": [["But", 192.19, 0, 0], ["I", 192.21, 0, 0], ["don't", 192.24, 0, 0], ["have", 192.39, 0, 0], ["that", 192.55, 0, 0], ["on", 192.67, 0, 0], ["me,", 192.8, 0, 0], ["I", 192.91, 0, 0], ["can", 192.99, 0, 0], ["set", 193.15, 0, 0], ["that", 193.2, 0, 0], ["up", 193.44, 0, 0], ["inside.", 193.58, 0, 0]]}, {"sp": "Bradley", "words": [["Yeah.", 194.32, 0, 0], ["And", 194.57, 0, 0], ["you", 194.75, 0, 0], ["can", 194.95, 0, 0], ["type", 195.08, 0, 0], ["it", 195.3, 0, 0], ["in,", 195.38, 0, 0], ["because", 196.22, 0, 0], ["last", 196.38, 0, 0], ["thing", 196.58, 0, 0], ["I", 196.76, 0, 0], ["need", 196.82, 0, 0], ["to", 196.95, 0, 0], ["do", 197.03, 0, 0], ["is", 197.21, 0, 0], ["just", 197.36, 0, 0], ["confirm", 197.52, 0, 0], ["it.", 197.91, 0, 0]]}, {"sp": "Adam", "words": [["Okay.", 198.71, 0, 0]]}, {"sp": "Bradley", "words": [["Sometimes", 198.75, 0, 0], ["it'll", 199.03, 0, 0], ["auto-populate,", 199.16, 0, 0], ["otherwise,", 200.03, 0, 0], ["if", 200.42, 0, 0], ["you", 200.54, 0, 0], ["want", 200.61, 0, 0], ["to", 200.73, 0, 0], ["grab", 200.75, 0, 0], ["it,", 201.01, 0, 0], ["you", 201.1, 0, 0], ["can", 201.19, 0, 0], ["do", 201.28, 0, 0], ["that.", 201.39, 0, 0]]}, {"sp": "Adam", "words": [["Okay.", 201.78, 0, 0], ["Cool.", 202.25, 0, 0]]}]}, {"label": "Closing With Payment Info", "skip": 56, "t0": 204.2, "t1": 206.84, "turns": [{"sp": "Adam", "words": [["Got", 204.4, 0, 0], ["it", 204.59, 0, 0], ["in", 204.65, 0, 0], ["there.", 204.75, 0, 0]]}, {"sp": "Bradley", "words": [["Got", 205.39, 0, 0], ["it?", 205.6, 0, 0], ["Okay.", 205.89, 0, 0]]}]}], "hl": [{"label": "Price Objection", "t": 27.67}, {"label": "\"Not Ready To Sign Up Right Now\"", "t": 42.53}, {"label": "RAC (Resolve, Ace, Close) –> Price Drop", "t": 75.64}, {"label": "Anchoring Price To Value, Not To Competition", "t": 116.09}, {"label": "\"Okay, I'll Give You A Shot.\"", "t": 178.31}, {"label": "Getting Credit Card (Asking For Payment)", "t": 191.18}]};
+const $ = id => document.getElementById(id);
+const au = $('au'), col = $('col'), scroll = $('scroll');
+const D = DATA.duration;
+const fmt = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const skipTxt = s => { const m = Math.floor(s / 60), x = s % 60; return 'Skipped ahead ' + (m && x ? m + ' min ' + x + ' sec' : m ? m + ' min' : x + ' sec'); };
+$('dur').textContent = fmt(D);
+
+// build transcript
+const W = [], titles = [];
+const hlAt = new Map(DATA.hl.map(h => [h.t, h.label]));
+DATA.clips.forEach((c, ci) => {
+  const sec = document.createElement('section'); sec.className = 'clip';
+  if (c.skip != null && c.skip > 2) { const k = document.createElement('div'); k.className = 'skip'; k.textContent = skipTxt(c.skip); sec.appendChild(k); }
+  const h = document.createElement('h2'); h.className = 'ctitle'; h.textContent = c.label; h.addEventListener('click', () => seek(c.t0, true));
+  sec.appendChild(h); titles.push(h);
+  c.turns.forEach(t => {
+    const cls = t.sp.toLowerCase() === DATA.me.toLowerCase() ? 'bradley' : 'adam';
+    let tag = null;
+    t.words.forEach(w => { if (!tag && hlAt.has(w[1])) tag = hlAt.get(w[1]); });
+    const box = document.createElement('div');
+    if (tag) { const g = document.createElement('div'); g.className = 'tag'; g.textContent = tag; box.appendChild(g); }
+    const who = document.createElement('div'); who.className = 'who ' + cls; who.textContent = t.sp; box.appendChild(who);
+    const p = document.createElement('p'); p.className = 'say';
+    t.words.forEach((w, i) => {
+      const s = document.createElement('span'); s.className = 'w ' + cls + (w[3] ? ' rm' : ''); s.textContent = w[0];
+      const idx = W.length;
+      if (!w[3]) s.addEventListener('click', () => seek(W[idx].t, true));
+      W.push({ t: w[1], el: s, ci, txt: w[0].toLowerCase().replace(/[^a-z0-9']/g, ''), rm: !!w[3] });
+      p.appendChild(s); if (i < t.words.length - 1) p.appendChild(document.createTextNode(' '));
+    });
+    box.appendChild(p); sec.appendChild(box);
+  });
+  col.appendChild(sec);
+});
+
+// track: clip gaps + highlight marks
+const track = $('track');
+DATA.clips.forEach((c, i) => { if (i) { const g = document.createElement('div'); g.className = 'gap'; g.style.left = ((c.t0 - 0.5) / D * 100) + '%'; track.appendChild(g); } });
+DATA.hl.forEach(h => { const m = document.createElement('div'); m.className = 'mark'; m.style.left = (h.t / D * 100) + '%'; track.appendChild(m); });
+
+// highlights menu
+const menu = $('menu'), hlbtn = $('hlbtn');
+DATA.hl.forEach(h => {
+  const b = document.createElement('button');
+  const t = document.createElement('span'); t.className = 't'; t.textContent = fmt(h.t);
+  const l = document.createElement('span'); l.textContent = h.label;
+  b.append(t, l); b.addEventListener('click', () => { closeMenu(); seek(h.t, true); });
+  menu.appendChild(b);
+});
+function closeMenu() { menu.hidden = true; hlbtn.setAttribute('aria-expanded', 'false'); }
+hlbtn.addEventListener('click', e => { e.stopPropagation(); const open = menu.hidden; menu.hidden = !open; hlbtn.setAttribute('aria-expanded', String(open)); });
+document.addEventListener('click', e => { if (!menu.hidden && !menu.contains(e.target)) closeMenu(); });
+
+// playback
+let auto = true, curW = -1, curC = -1, programmatic = 0;
+function seek(t, play) { au.currentTime = Math.max(0, Math.min(D - 0.05, t - 0.08)); setAuto(true); render(true); if (play) au.play().catch(() => {}); }
+const PLAY = 'M4.5 2.8v10.4L13 8z', PAUSE = 'M5 3.5h2v9H5zM9 3.5h2v9H9z';
+function icon() { const p = au.paused; $('pico').firstElementChild.setAttribute('d', p ? PLAY : PAUSE); $('play').classList.toggle('on', !p); $('play').setAttribute('aria-label', p ? 'Play' : 'Pause'); }
+$('play').addEventListener('click', () => au.paused ? au.play().catch(() => {}) : au.pause());
+au.addEventListener('play', () => { icon(); loop(); }); au.addEventListener('pause', icon); au.addEventListener('ended', icon);
+function muteIcon() { $('mute').setAttribute('aria-label', au.muted ? 'Unmute' : 'Mute'); $('mico').lastElementChild.style.display = au.muted ? 'none' : ''; }
+$('mute').addEventListener('click', () => { au.muted = !au.muted; muteIcon(); });
+$('speed').addEventListener('change', e => { au.playbackRate = +e.target.value; });
+function setAuto(v) { auto = v; $('auto').setAttribute('aria-checked', String(v)); }
+$('auto').addEventListener('click', () => { setAuto(!auto); if (auto) render(true); });
+['wheel', 'touchmove'].forEach(ev => scroll.addEventListener(ev, () => { if (!au.paused) setAuto(false); }, { passive: true }));
+
+// scrubber
+const scrub = $('scrub'), tip = $('tip');
+function tAt(x) { const r = scrub.getBoundingClientRect(); return Math.max(0, Math.min(1, (x - r.left) / r.width)) * D; }
+function showTip(t, x) {
+  const r = scrub.getBoundingClientRect();
+  let lab = null; DATA.hl.forEach(h => { if (Math.abs(h.t - t) < D * 0.008) lab = h.label; });
+  tip.textContent = ''; if (lab) { const b = document.createElement('b'); b.textContent = lab + '  '; tip.appendChild(b); }
+  tip.appendChild(document.createTextNode(fmt(t)));
+  tip.hidden = false;
+  const w = tip.offsetWidth, left = Math.max(w / 2, Math.min(r.width - w / 2, x - r.left));
+  tip.style.left = left + 'px';
+  const cur = au.currentTime, a = Math.min(cur, t), b = Math.max(cur, t);
+  $('prev').style.left = (a / D * 100) + '%'; $('prev').style.width = ((b - a) / D * 100) + '%';
+}
+let dragging = false;
+scrub.addEventListener('pointermove', e => { showTip(tAt(e.clientX), e.clientX); if (dragging) { au.currentTime = tAt(e.clientX); render(true); } });
+scrub.addEventListener('pointerleave', () => { if (!dragging) { tip.hidden = true; $('prev').style.width = 0; } });
+scrub.addEventListener('pointerdown', e => { dragging = true; scrub.setPointerCapture(e.pointerId); au.currentTime = tAt(e.clientX); setAuto(true); render(true); });
+scrub.addEventListener('pointerup', () => { dragging = false; });
+scrub.addEventListener('keydown', e => { if (e.key === 'ArrowRight') { seek(au.currentTime + 5); e.preventDefault(); } if (e.key === 'ArrowLeft') { seek(au.currentTime - 5); e.preventDefault(); } });
+
+// search
+const q = $('q'); let hits = [], hi = -1;
+q.addEventListener('input', () => {
+  W.forEach(w => w.el.classList.remove('hit', 'cur'));
+  const terms = q.value.toLowerCase().trim().split(/\s+/).map(s => s.replace(/[^a-z0-9']/g, '')).filter(Boolean);
+  hits = [];
+  if (terms.length) for (let i = 0; i + terms.length <= W.length; i++) {
+    let ok = true; for (let k = 0; k < terms.length; k++) { const x = W[i + k].txt; if (k === terms.length - 1 ? !x.startsWith(terms[k]) : x !== terms[k]) { ok = false; break; } }
+    if (ok) { hits.push(i); for (let k = 0; k < terms.length; k++) W[i + k].el.classList.add('hit'); }
+  }
+  hi = -1; $('count').textContent = terms.length ? (hits.length ? hits.length + ' found' : 'No results') : '';
+});
+q.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && hits.length) {
+    hi = (hi + (e.shiftKey ? -1 : 1) + hits.length) % hits.length;
+    W.forEach(w => w.el.classList.remove('cur')); const w = W[hits[hi]]; w.el.classList.add('cur');
+    $('count').textContent = (hi + 1) + ' / ' + hits.length; setAuto(false);
+    w.el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  if (e.key === 'Escape') { q.value = ''; q.dispatchEvent(new Event('input')); q.blur(); }
+});
+
+// render loop
+function scrollToEl(el) {
+  const top = el.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
+  const want = Math.max(0, top - scroll.clientHeight * 0.3);
+  if (Math.abs(want - scroll.scrollTop) > 32) scroll.scrollTo({ top: want, behavior: 'smooth' });
+}
+function render(force) {
+  const t = au.currentTime;
+  $('cur').textContent = fmt(t);
+  $('fill').style.width = (t / D * 100) + '%';
+  scrub.setAttribute('aria-valuenow', Math.round(t)); scrub.setAttribute('aria-valuemax', Math.round(D));
+  let ci = 0; for (let i = 0; i < DATA.clips.length; i++) if (t >= DATA.clips[i].t0 - 1.0) ci = i;
+  let lo = 0, hiI = W.length - 1, wi = -1;
+  while (lo <= hiI) { const m = (lo + hiI) >> 1; if (W[m].t <= t + 0.03) { wi = m; lo = m + 1; } else hiI = m - 1; }
+  if (wi >= 0 && (W[wi].ci !== ci || W[wi].rm)) wi = -1;
+  if (wi !== curW || ci !== curC || force) {
+    if (curW >= 0) W[curW].el.classList.remove('now');
+    if (wi >= 0) W[wi].el.classList.add('now');
+    titles.forEach((h, i) => h.classList.toggle('now', i === ci && (t > 0 || !au.paused)));
+    if (ci !== curC || force) $('where').textContent = DATA.clips[ci].label;
+    if (auto && (t > 0 || force)) scrollToEl(wi >= 0 ? W[wi].el : titles[ci]);
+    curW = wi; curC = ci;
+  }
+}
+function loop() { render(); if (!au.paused) requestAnimationFrame(loop); }
+au.addEventListener('timeupdate', () => render());
+au.addEventListener('seeked', () => render());
+document.addEventListener('keydown', e => {
+  if (e.target === q || e.target.tagName === 'SELECT') return;
+  if (e.code === 'Space' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); $('play').click(); }
+  if (e.key === 'm') $('mute').click();
+});
+icon(); muteIcon(); render(true); scroll.scrollTop = 0;
+</script>
+</body></html>

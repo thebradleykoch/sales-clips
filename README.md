@@ -1,2 +1,3 @@
 # sales-clips
-Sales clips for sales profile (job applications)
+
+Highlight players for recorded sales calls. Personal info removed.
